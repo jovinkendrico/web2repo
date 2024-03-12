@@ -26,9 +26,12 @@ Route::view('profile', 'profile')
 
 require __DIR__.'/auth.php';
 
-// routing untuk admin barang
-function adminBarangRoutes()
-{
+
+// proteksi route dengan middlware auth
+// https://laravel.com/docs/10.x/authentication#protecting-routes
+Route::middleware('auth')->group(function() {
+    // route barang sekarang berada di bawah route /admin
+    Route::prefix('/admin')->name('admin.')->group(function() {
     Route::controller(BarangController::class)->prefix('/barang')
                                               ->name('barang.')
                                               ->group(function() {
@@ -40,13 +43,6 @@ function adminBarangRoutes()
         Route::post('/edit/{id}', 'update')->name('update');
         Route::get('/delete/{id}', 'delete')->name('delete');
     });
-}
 
-// proteksi route dengan middlware auth
-// https://laravel.com/docs/10.x/authentication#protecting-routes
-Route::middleware('auth')->group(function() {
-    // route barang sekarang berada di bawah route /admin
-    Route::prefix('/admin')->name('admin.')->group(function() {
-        adminBarangRoutes();
     });
 });

@@ -4,13 +4,19 @@ namespace App\Http\Controllers;
 
 // import CreateBarangRequest untuk digunakan
 use App\Http\Requests\CreateBarangRequest;
+use App\Services\BarangService;
+use App\Services\BarangServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BarangController extends Controller
 {
+    function __construct(private BarangServiceInterface $barangService)
+    {}
+
     // List Barang
     function index()
     {
@@ -50,40 +56,16 @@ class BarangController extends Controller
         // yang sudah di-validasi dan di-normalize
         $b = $request->validated();
 
-        DB::transaction(function() use($b) {
-            // mass assign create with validation
-            $barang = Barang::create([
-                'nama' => $b['nama'],
-                'harga' => $b['harga'],
+        try {
+            $this->barangService->create($b['nama'], $b['harga'], Auth::user());
+        } catch (\Exception $e) {
+            Log::error('failed to create barang', [
+                'error_message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+            abort(500);
+        }
 
-            // NOTE: untuk relasi belongs to kita dapat
-            // menggunakan menthod associate untuk mengisi relasi
-            // dengan object yang diingin direlasikan
-            $barang->createdBy()->associate(Auth::user());
-            $barang->updatedBy()->associate(Auth::user());
-            // NOTE: simpan ulang barang yang dibuat dengan info created_by dan updated_by
-            $barang->save();
-
-            if (!$barang) {
-                // abort dengan response HTTP 500 jika gagal membuat record barang
-                abort(500);
-            }
-        });
-
-        // mass assign create without validation
-        /*$barang = Barang::create([
-            'nama' => $request->input('nama'),
-            'harga' => (int)$request->input('harga')
-        ]);*/
-
-        // manually create without validation
-        /*$barang = new Barang;
-        $barang->nama = $request->input('nama');
-        $barang->harga = (int)$request->input('harga');
-        $barang->save();*/
-
-        // return redirect('/barang');
         return to_route('admin.barang.index');
     }
 
