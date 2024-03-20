@@ -202,3 +202,42 @@ Edit view `resources/views/barang/index.blade.php`, bungkus view kita dengan `<x
 Jangan lupa untuk mengupdate `routes/web.php` yang telah di-_overwrite_ oleh Breeze.
 
 Supaya script Javascript dan CSS dibuild setiap kita melukan perubahan di-view, jalankan `npm run dev`.
+
+# Laravel Queue
+
+Dokumentasi di [Laravel Queue](https://laravel.com/docs/10.x/queues). Digunakan untuk menjalankan proses yang membutuhkan waktu lama
+untuk mengurangi waktu response (misalnya, mengirimkan email).
+
+Laravel queue memiliki beberapa pilihan connection untuk menyimpan Job yang akan dijalankan:
+
+1. database
+2. Redis
+3. Amazon SQS
+4. Beanstalkd
+
+## Database connection
+
+Menggunakan database untuk menyimpan dan sebagai queue untuk menampung job yang akan dijalankan.
+
+1. Lakukan migrasi database untuk membentuk struktur table job
+
+```sh
+php artisan make:queue-table
+php artisan migrate
+```
+
+2. Buat class job untuk mendefinisikan payload dan handler untuk menjalankan job
+
+```sh
+php artisan make:job BarangProcessor
+```
+
+Akan terbentuk sebuah file di `/app/Jobs/BarangProcessor.php`. Isikan payload
+sebagai parameter di `__construct` dan definisikan proses untuk meng-_consume_ Job
+di method `handle`.
+
+3. Publish job dengan menggunakan static method `dispatch`.
+
+    ```php
+    BarangProcessor::dispatch($barang->id);
+    ```

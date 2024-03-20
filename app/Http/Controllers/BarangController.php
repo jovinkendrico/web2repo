@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 // import CreateBarangRequest untuk digunakan
 use App\Http\Requests\CreateBarangRequest;
+use App\Jobs\BarangProcessor;
 use App\Services\BarangService;
 use App\Services\BarangServiceInterface;
 use Illuminate\Http\Request;
 use App\Models\Barang;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -57,7 +59,10 @@ class BarangController extends Controller
         $b = $request->validated();
 
         try {
-            $this->barangService->create($b['nama'], $b['harga'], Auth::user());
+            $barang = $this->barangService->create($b['nama'], $b['harga'], Auth::user());
+
+            // Producer
+            BarangProcessor::dispatch($barang->id);
         } catch (\Exception $e) {
             Log::error('failed to create barang', [
                 'error_message' => $e->getMessage(),

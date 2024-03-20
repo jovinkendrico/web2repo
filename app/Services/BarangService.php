@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class BarangService implements BarangServiceInterface
 {
-    public function create(string $nama, int $harga, User $actor)
+    public function create(string $nama, int $harga, User $actor): Barang
     {
-        DB::transaction(function() use($nama, $harga, $actor) {
+        return DB::transaction(function() use($nama, $harga, $actor) {
             // mass assign create with validation
             $barang = Barang::create([
                 'nama' => $nama,
@@ -25,6 +25,8 @@ class BarangService implements BarangServiceInterface
             if (!$barang) {
                 throw new \Exception('failed to create barang');
             }
+
+            return $barang;
         });
     }
 }
