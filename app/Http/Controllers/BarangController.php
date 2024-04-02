@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 // import CreateBarangRequest untuk digunakan
+use App\Events\BarangCreated;
 use App\Http\Requests\CreateBarangRequest;
 use App\Jobs\BarangProcessor;
 use App\Services\BarangService;
@@ -17,7 +18,8 @@ use Illuminate\Support\Facades\Log;
 class BarangController extends Controller
 {
     function __construct(private BarangServiceInterface $barangService)
-    {}
+    {
+    }
 
     // List Barang
     function index()
@@ -61,8 +63,8 @@ class BarangController extends Controller
         try {
             $barang = $this->barangService->create($b['nama'], $b['harga'], Auth::user());
 
-            // Producer
-            BarangProcessor::dispatch($barang->id);
+            // Publish event
+            BarangCreated::dispatch($barang);
         } catch (\Exception $e) {
             Log::error('failed to create barang', [
                 'error_message' => $e->getMessage(),
@@ -106,7 +108,7 @@ class BarangController extends Controller
         // Apabila terjadi exception di dalam transaction, transaksi database
         // akan di rollback, sebaliknya jika tidak terjadi exception
         // transaksi akan otomatis di commit ke database
-        DB::transaction(function() use($validated_request, $id) {
+        DB::transaction(function () use ($validated_request, $id) {
             $barang = Barang::owned()->where('id', $id)?->lockForUpdate();
             if (!$barang) {
                 abort(404);
@@ -131,7 +133,7 @@ class BarangController extends Controller
         $existingBarang = Barang::owned()->findOrFail($id);
         $this->authorize('delete', $existingBarang);
 
-        DB::transaction(function() use($id) {
+        DB::transaction(function () use ($id) {
             $barang = Barang::findOrFail($id);
 
             $deleted = $barang->delete();
