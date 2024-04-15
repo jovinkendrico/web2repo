@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Events\BarangCreated;
+use App\Events\BarangDeleted;
+use App\Listeners\AfterBarangDeletedAction;
 use App\Listeners\LogCreatedBarang;
 use App\Listeners\AfterBarangCreatedAction;
+use App\Listeners\LogDeletedBarang;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -23,7 +26,11 @@ class EventServiceProvider extends ServiceProvider
         ],
         BarangCreated::class => [
             LogCreatedBarang::class,
-            AfterBarangCreatedAction::class,
+            // AfterBarangCreatedAction::class,
+        ],
+        BarangDeleted::class => [
+            AfterBarangDeletedAction::class,
+            LogDeletedBarang::class,
         ],
     ];
 

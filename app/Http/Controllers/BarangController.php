@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 // import CreateBarangRequest untuk digunakan
 use App\Events\BarangCreated;
+use App\Events\BarangDeleted;
 use App\Http\Requests\CreateBarangRequest;
 use App\Jobs\BarangProcessor;
 use App\Services\BarangService;
@@ -135,11 +136,12 @@ class BarangController extends Controller
 
         DB::transaction(function () use ($id) {
             $barang = Barang::findOrFail($id);
-
+            BarangDeleted::dispatch($barang);
             $deleted = $barang->delete();
             if (!$deleted) {
                 abort(500);
             }
+
         });
 
         return to_route('admin.barang.index');
